@@ -1,6 +1,6 @@
 //
 //  SubscriptionToken.swift
-//  Americano
+//  Mac-Menu-Bar-App-Template
 //
 //  Created by Eden on 2023/9/20.
 //
