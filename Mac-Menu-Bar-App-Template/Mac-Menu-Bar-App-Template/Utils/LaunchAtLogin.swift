@@ -11,6 +11,8 @@ import os.log
 import ServiceManagement
 
 enum LaunchAtLogin {
+    static let enabledPublisher = CurrentValueSubject<Bool, Never>(isEnabled)
+
     static var isEnabled: Bool {
         SMAppService.mainApp.status == .enabled
     }
@@ -22,6 +24,7 @@ enum LaunchAtLogin {
             } else {
                 try SMAppService.mainApp.register()
             }
+            enabledPublisher.send(isEnabled)
         } catch {
             print("Failed to \(isEnabled ? "unregister" : "register") launch at login: \(error)")
         }
