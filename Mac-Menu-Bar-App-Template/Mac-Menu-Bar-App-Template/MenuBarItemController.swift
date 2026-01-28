@@ -10,91 +10,91 @@ import Combine
 import os.log
 
 final class MenuBarItemController {
-    static let shared = MenuBarItemController()
+  static let shared = MenuBarItemController()
 
-    private var subscriptions = Set<AnyCancellable>()
-    private var statusItem: NSStatusItem!
+  private var subscriptions = Set<AnyCancellable>()
+  private var statusItem: NSStatusItem!
 
-    private lazy var settingWindowController: SettingWindowController = {
-        let settings: [SettingContentRepresentable] = []
-        return SettingWindowController(settings: settings)
-    }()
+  private lazy var settingWindowController: SettingWindowController = {
+    let settings: [SettingContentRepresentable] = []
+    return SettingWindowController(settings: settings)
+  }()
 
-    private init() {}
+  private init() {}
 
-    func setUp() {
-        statusItem = setUpStatusItem()
+  func setUp() {
+    statusItem = setUpStatusItem()
 
-        subscribePublishers()
+    subscribePublishers()
+  }
+
+  private func setUpStatusItem() -> NSStatusItem? {
+    let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+    guard let btn = statusItem.button else {
+      return nil
     }
 
-    private func setUpStatusItem() -> NSStatusItem? {
-        let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-        guard let btn = statusItem.button else {
-            return nil
-        }
+    statusItem.isVisible = true
+    statusItem.behavior = .terminationOnRemoval
 
-        statusItem.isVisible = true
-        statusItem.behavior = .terminationOnRemoval
+    btn.image = NSImage(systemSymbolName: <#T##String#>, accessibilityDescription: <#T##String#>)
+    btn.image?.size = NSSize(width: 18, height: 18)
+    btn.image?.isTemplate = true
 
-        btn.image = NSImage(systemSymbolName: <#T##String#>, accessibilityDescription: <#T##String#>)
-        btn.image?.size = NSSize(width: 18, height: 18)
-        btn.image?.isTemplate = true
+    btn.target = self
+    btn.action = #selector(onStatusBarItemHandle(_:))
+    btn.sendAction(on: [.leftMouseUp, .rightMouseUp])
 
-        btn.target = self
-        btn.action = #selector(onStatusBarItemHandle(_:))
-        btn.sendAction(on: [.leftMouseUp, .rightMouseUp])
+    return statusItem
+  }
 
-        return statusItem
+  @objc private func onStatusBarItemHandle(_ sender: NSStatusBarButton) {
+    guard let event = NSApp.currentEvent else { return }
+
+    switch event.type {
+    case .leftMouseUp:
+      showMenu(sender)
+    case .rightMouseUp:
+      break
+    default:
+      break
     }
+  }
 
-    @objc private func onStatusBarItemHandle(_ sender: NSStatusBarButton) {
-        guard let event = NSApp.currentEvent else { return }
+  private func showMenu(_: NSStatusBarButton) {
+    let menu = setUpMenu()
+    showMenu(menu, for: statusItem)
+  }
 
-        switch event.type {
-        case .leftMouseUp:
-            showMenu(sender)
-        case .rightMouseUp:
-            break
-        default:
-            break
-        }
-    }
+  private func showMenu(_ menu: NSMenu, for item: NSStatusItem) {
+    item.menu = menu
+    /// tricks
+    item.button?.performClick(nil)
+    item.menu = nil
+  }
 
-    private func showMenu(_ sender: NSStatusBarButton) {
-        let menu = setUpMenu()
-        showMenu(menu, for: statusItem)
-    }
+  private func setUpMenu() -> NSMenu {
+    let menu = createMenu()
+    // https://github.com/onmyway133/blog/issues/428
+    menu.autoenablesItems = false
+    return menu
+  }
 
-    private func showMenu(_ menu: NSMenu, for item: NSStatusItem) {
-        item.menu = menu
-        /// tricks
-        item.button?.performClick(nil)
-        item.menu = nil
-    }
+  private func createMenu() -> NSMenu {
+    NSMenu()
+  }
 
-    private func setUpMenu() -> NSMenu {
-        let menu = createMenu()
-        // https://github.com/onmyway133/blog/issues/428
-        menu.autoenablesItems = false
-        return menu
-    }
+  private func subscribePublishers() {}
 
-    private func createMenu() -> NSMenu {
-        NSMenu()
-    }
+  private func changeMenuBarItemImage(with name: String) {
+    guard let btn = statusItem?.button else { return }
 
-    private func subscribePublishers() {}
+    btn.image = NSImage(systemSymbolName: name, accessibilityDescription: <#T##String#>)
+  }
 
-    private func changeMenuBarItemImage(with name: String) {
-        guard let btn = statusItem?.button else { return }
+  private func changeMenuBarItemToolTip(with tip: String) {
+    guard let btn = statusItem?.button else { return }
 
-        btn.image = NSImage(systemSymbolName: name, accessibilityDescription: <#T##String#>)
-    }
-
-    private func changeMenuBarItemToolTip(with tip: String) {
-        guard let btn = statusItem?.button else { return }
-
-        btn.toolTip = tip
-    }
+    btn.toolTip = tip
+  }
 }
